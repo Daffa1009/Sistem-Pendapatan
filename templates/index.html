@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Pencatatan Dagang</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --green:      #10b981;
+            --green-l:    #d1fae5;
+            --green-d:    #059669;
+            --blue:       #6366f1;
+            --blue-l:     #e0e7ff;
+            --blue-d:     #4338ca;
+            --red:        #ef4444;
+            --red-l:      #fee2e2;
+            --amber:      #f59e0b;
+            --amber-l:    #fef3c7;
+            --text:       #1e293b;
+            --sub:        #64748b;
+            --muted:      #94a3b8;
+            --border:     #e2e8f0;
+            --bg:         #f8fafc;
+            --white:      #ffffff;
+            --r:          18px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 40px 16px 80px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ── ANIMATED BACKGROUND BLOBS ── */
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 0;
+            animation: floatBlob 8s ease-in-out infinite;
+        }
+        .blob-1 {
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, #a5f3fc, #6366f1);
+            top: -150px; left: -150px;
+            animation-delay: 0s;
+        }
+        .blob-2 {
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, #bbf7d0, #34d399);
+            top: 200px; right: -100px;
+            animation-delay: -3s;
+        }
+        .blob-3 {
+            width: 350px; height: 350px;
+            background: radial-gradient(circle, #fde68a, #fb923c);
+            bottom: 100px; left: 30%;
+            animation-delay: -5s;
+        }
+        @keyframes floatBlob {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33%       { transform: translate(30px, -30px) scale(1.05); }
+            66%       { transform: translate(-20px, 20px) scale(0.95); }
+        }
+
+        .container { max-width: 1100px; margin: auto; position: relative; z-index: 1; }
+
+        /* ── HEADER ── */
+        .header {
+            text-align: center;
+            margin-bottom: 52px;
+            animation: fadeDown .6s ease both;
+        }
+        @keyframes fadeDown {
+            from { opacity: 0; transform: translateY(-24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+            color: var(--blue); background: var(--blue-l);
+            padding: 6px 18px; border-radius: 100px; margin-bottom: 18px;
+            border: 1.5px solid #c7d2fe;
+        }
+        .badge .ping {
+            width: 8px; height: 8px; border-radius: 50%; background: var(--blue);
+            position: relative;
+        }
+        .badge .ping::before {
+            content: ''; position: absolute; inset: -3px;
+            border-radius: 50%; background: var(--blue);
+            opacity: .4; animation: ping 1.5s ease infinite;
+        }
+        @keyframes ping { 0%{transform:scale(1);opacity:.4} 100%{transform:scale(2.2);opacity:0} }
+
+        .header h1 {
+            font-size: clamp(32px, 6vw, 52px);
+            font-weight: 800; letter-spacing: -1.5px;
+            background: linear-gradient(135deg, #1e293b 0%, var(--blue) 50%, var(--green) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            line-height: 1.1; margin-bottom: 12px;
+        }
+        .header p { color: var(--sub); font-size: 16px; }
+
+        /* ── STATS ── */
+        .stats-bar {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px; margin-bottom: 40px;
+            animation: fadeUp .6s .1s ease both;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: var(--r);
+            padding: 20px 22px;
+            border: 1.5px solid var(--border);
+            position: relative; overflow: hidden;
+            transition: transform .25s, box-shadow .25s;
+            box-shadow: 0 1px 3px rgba(0,0,0,.05);
+        }
+        .stat-card::before {
+            content: ''; position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+        }
+        .stat-card.s-blue::before  { background: linear-gradient(90deg, var(--blue), #a5b4fc); }
+        .stat-card.s-green::before { background: linear-gradient(90deg, var(--green), #6ee7b7); }
+        .stat-card.s-amber::before { background: linear-gradient(90deg, var(--amber), #fcd34d); }
+        .stat-card.s-red::before   { background: linear-gradient(90deg, var(--red), #fca5a5); }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.1); }
+
+        .stat-icon {
+            font-size: 22px; margin-bottom: 10px;
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 44px; height: 44px; border-radius: 12px;
+        }
+        .s-blue  .stat-icon { background: var(--blue-l); }
+        .s-green .stat-icon { background: var(--green-l); }
+        .s-amber .stat-icon { background: var(--amber-l); }
+        .s-red   .stat-icon { background: var(--red-l); }
+
+        .stat-label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+        .stat-value { font-family: 'DM Mono', monospace; font-size: 20px; font-weight: 500; color: var(--text); }
+
+        /* ── FORM GRID ── */
+        .form-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 44px; animation: fadeUp .6s .2s ease both; }
+        @media(min-width:760px) { .form-grid { grid-template-columns: 1fr 1fr; } }
+
+        /* ── GLASS CARD ── */
+        .card {
+            background: rgba(255,255,255,.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1.5px solid rgba(255,255,255,.9);
+            border-radius: var(--r);
+            padding: 28px;
+            display: flex; flex-direction: column; gap: 20px;
+            box-shadow: 0 4px 24px rgba(0,0,0,.06);
+            position: relative; overflow: hidden;
+            transition: transform .25s, box-shadow .25s;
+        }
+        .card::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,.4) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 16px 48px rgba(0,0,0,.1); }
+
+        .card-accent {
+            position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            border-radius: var(--r) var(--r) 0 0;
+        }
+        .card-green .card-accent { background: linear-gradient(90deg, var(--green), #6ee7b7, #34d399); }
+        .card-blue  .card-accent { background: linear-gradient(90deg, var(--blue), #a5b4fc, #818cf8); }
+
+        .card-title {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 16px; font-weight: 800; color: var(--text);
+        }
+        .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .dot-green { background: var(--green); box-shadow: 0 0 0 3px var(--green-l); }
+        .dot-blue  { background: var(--blue);  box-shadow: 0 0 0 3px var(--blue-l);  }
+
+        /* ── FORM ELEMENTS ── */
+        form { display: flex; flex-direction: column; gap: 14px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        label { font-size: 12px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--sub); }
+
+        input, select {
+            width: 100%; padding: 13px 16px;
+            font-size: 15px; font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--text); background: rgba(248,250,252,.8);
+            border: 1.5px solid var(--border); border-radius: 12px;
+            outline: none; transition: all .2s;
+            appearance: none; -webkit-appearance: none;
+            box-shadow: 0 1px 2px rgba(0,0,0,.04) inset;
+        }
+        input::placeholder { color: var(--muted); }
+        input:focus, select:focus {
+            border-color: var(--blue); background: white;
+            box-shadow: 0 0 0 4px rgba(99,102,241,.12);
+        }
+        .select-wrap { position: relative; }
+        .select-wrap::after {
+            content: '▾'; position: absolute; right: 16px; top: 50%;
+            transform: translateY(-50%); color: var(--sub); pointer-events: none;
+        }
+
+        /* ── BUTTONS ── */
+        .btn {
+            padding: 14px 20px; font-size: 15px; font-weight: 700;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            border: none; border-radius: 12px; cursor: pointer;
+            transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+            position: relative; overflow: hidden;
+        }
+        .btn::before {
+            content: ''; position: absolute; inset: 0;
+            background: rgba(255,255,255,.15);
+            transform: translateX(-100%);
+            transition: transform .3s ease;
+        }
+        .btn:hover::before { transform: translateX(0); }
+        .btn:hover { transform: translateY(-2px); }
+        .btn:active { transform: scale(.97); }
+
+        .btn-green {
+            background: linear-gradient(135deg, var(--green), var(--green-d));
+            color: white; box-shadow: 0 4px 16px rgba(16,185,129,.3);
+        }
+        .btn-green:hover { box-shadow: 0 8px 28px rgba(16,185,129,.4); }
+
+        .btn-blue {
+            background: linear-gradient(135deg, var(--blue), var(--blue-d));
+            color: white; box-shadow: 0 4px 16px rgba(99,102,241,.3);
+        }
+        .btn-blue:hover { box-shadow: 0 8px 28px rgba(99,102,241,.4); }
+
+        .btn-danger {
+            background: var(--red-l); color: var(--red);
+            border: 1.5px solid #fecaca;
+            padding: 7px 14px; font-size: 12px; border-radius: 8px;
+        }
+        .btn-danger:hover { background: #fecaca; box-shadow: 0 4px 16px rgba(239,68,68,.2); }
+
+        /* ── SECTION HEADER ── */
+        .sec-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+        .sec-header h2 { font-size: 18px; font-weight: 800; white-space: nowrap; color: var(--text); }
+        .sec-header .line { flex: 1; height: 1.5px; background: linear-gradient(90deg, var(--border), transparent); }
+
+        /* ── PRODUK GRID ── */
+        .produk-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 16px; margin-bottom: 44px;
+            animation: fadeUp .6s .3s ease both;
+        }
+
+        .produk-item {
+            background: rgba(255,255,255,.8);
+            backdrop-filter: blur(12px);
+            border: 1.5px solid rgba(255,255,255,.9);
+            border-radius: 16px; padding: 20px;
+            display: flex; flex-direction: column; gap: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,.05);
+            transition: all .25s; position: relative; overflow: hidden;
+        }
+        .produk-item::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, var(--green), #6ee7b7);
+            transform: scaleX(0); transform-origin: left;
+            transition: transform .3s ease;
+        }
+        .produk-item:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.1); }
+        .produk-item:hover::before { transform: scaleX(1); }
+
+        .produk-nama { font-weight: 700; font-size: 15px; color: var(--text); }
+        .harga-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+        .harga-row .label { color: var(--muted); }
+        .harga-row .value { font-family: 'DM Mono', monospace; font-weight: 500; color: var(--text); }
+        .harga-profit {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 12px; border-radius: 10px;
+            background: var(--green-l); margin-top: 2px;
+        }
+        .harga-profit .label { font-size: 11px; font-weight: 700; color: var(--green-d); text-transform: uppercase; letter-spacing: .5px; }
+        .harga-profit .value { font-family: 'DM Mono', monospace; font-weight: 700; color: var(--green-d); font-size: 14px; }
+
+        /* ── TABLE ── */
+        .table-section { animation: fadeUp .6s .4s ease both; }
+        .table-wrapper {
+            background: rgba(255,255,255,.8);
+            backdrop-filter: blur(16px);
+            border: 1.5px solid rgba(255,255,255,.9);
+            border-radius: var(--r); overflow: hidden;
+            box-shadow: 0 4px 24px rgba(0,0,0,.06);
+        }
+        .table-scroll { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 620px; font-size: 14px; }
+
+        thead tr { background: linear-gradient(135deg, #f8fafc, #f1f5f9); }
+        th {
+            padding: 16px 20px; text-align: left;
+            font-size: 11px; font-weight: 700; letter-spacing: 1px;
+            text-transform: uppercase; color: var(--muted); white-space: nowrap;
+            border-bottom: 1.5px solid var(--border);
+        }
+        td { padding: 16px 20px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; color: var(--sub); }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr { transition: background .15s; }
+        tbody tr:hover td { background: #f8fafc; }
+
+        .td-id   { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--muted); }
+        .td-name { font-weight: 700; color: var(--text); }
+        .td-qty  { font-family: 'DM Mono', monospace; }
+
+        .pill {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 4px 12px; border-radius: 100px; font-family: 'DM Mono', monospace; font-weight: 500; font-size: 13px;
+        }
+        .pill-blue  { background: var(--blue-l);  color: var(--blue-d);  }
+        .pill-green { background: var(--green-l); color: var(--green-d); }
+
+        tfoot tr { background: linear-gradient(135deg, #f0fdf4, #ecfdf5); border-top: 1.5px solid #d1fae5; }
+        tfoot td { padding: 18px 20px; font-weight: 800; border: none; }
+        .td-total { font-size: 12px; letter-spacing: .5px; text-transform: uppercase; color: var(--muted); text-align: right; }
+
+        .empty { text-align: center; padding: 64px 20px; color: var(--muted); }
+        .empty .icon { font-size: 48px; margin-bottom: 12px; }
+        .empty p { font-size: 14px; }
+
+        /* ── MODAL ── */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(15,23,42,.4); backdrop-filter: blur(6px);
+            z-index: 200; align-items: center; justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: white; border-radius: 24px; padding: 36px;
+            max-width: 400px; width: 90%; text-align: center;
+            box-shadow: 0 24px 64px rgba(0,0,0,.2);
+            animation: popIn .25s cubic-bezier(.34,1.56,.64,1) both;
+        }
+        @keyframes popIn { from{transform:scale(.85);opacity:0} to{transform:scale(1);opacity:1} }
+
+        .modal-icon { font-size: 44px; margin-bottom: 16px; }
+        .modal h3 { font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+        .modal p  { color: var(--sub); font-size: 14px; line-height: 1.7; margin-bottom: 28px; }
+        .modal-actions { display: flex; gap: 12px; }
+        .btn-cancel {
+            flex: 1; padding: 13px; border-radius: 12px; font-size: 14px; font-weight: 700;
+            cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #f1f5f9; border: 1.5px solid var(--border); color: var(--sub);
+            transition: background .2s;
+        }
+        .btn-cancel:hover { background: var(--border); }
+        .btn-confirm {
+            flex: 1; padding: 13px; border-radius: 12px; font-size: 14px; font-weight: 700;
+            cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border: none; color: white;
+            box-shadow: 0 4px 16px rgba(239,68,68,.35);
+            transition: all .2s;
+        }
+        .btn-confirm:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(239,68,68,.4); }
+
+        /* ── SHIMMER ON LOAD ── */
+        @keyframes shimmer {
+            0%   { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+        .footer {
+    margin-top: 80px;
+    padding: 40px 0;
+    border-top: 1.5px solid var(--border);
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+.footer-content p {
+    color: var(--sub);
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.footer-links {
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    align-items: center;
+}
+
+.separator {
+    color: var(--border);
+}
+    </style>
+</head>
+<body>
+
+<!-- Background blobs -->
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+
+<div class="container">
+
+    <!-- Header -->
+    <div class="header">
+        <h1>Pencatatan Penjualan</h1>
+        <p>PANTAU PRODUK DAN KELOLA PENDAPATAN PRODUK KAMU✨</p>
+    </div>
+
+    <!-- Stats -->
+    {% set total_kotor  = laporan | sum(attribute='pendapatan_kotor')  if laporan else 0 %}
+    {% set total_bersih = laporan | sum(attribute='pendapatan_bersih') if laporan else 0 %}
+    {% set total_item   = laporan | sum(attribute='jumlah_terjual')    if laporan else 0 %}
+
+    <div class="stats-bar">
+        <div class="stat-card s-blue">
+            <div class="stat-icon">📦</div>
+            <div class="stat-label">Total Produk</div>
+            <div class="stat-value">{{ produk_list | length }}</div>
+        </div>
+        <div class="stat-card s-amber">
+            <div class="stat-icon">🛒</div>
+            <div class="stat-label">Total Terjual</div>
+            <div class="stat-value">{{ total_item }} pcs</div>
+        </div>
+        <div class="stat-card s-blue">
+            <div class="stat-icon">💰</div>
+            <div class="stat-label">Pendapatan Kotor</div>
+            <div class="stat-value">Rp {{ "{:,.0f}".format(total_kotor) }}</div>
+        </div>
+        <div class="stat-card s-green">
+            <div class="stat-icon">📈</div>
+            <div class="stat-label">Pendapatan Bersih</div>
+            <div class="stat-value">Rp {{ "{:,.0f}".format(total_bersih) }}</div>
+        </div>
+    </div>
+
+    <!-- Forms -->
+    <div class="form-grid">
+        <div class="card card-green">
+            <div class="card-accent"></div>
+            <div class="card-title"><span class="dot dot-green"></span> Masukkan Produk </div>
+            <form action="/tambah_produk" method="POST">
+                <div class="form-group">
+                    <label for="nama_produk">Nama Produk</label>
+                    <input type="text" id="nama_produk" name="nama_produk" placeholder="Masukkan Nama Produk" maxlength="100" required>
+                </div>
+                <div class="form-group">
+                    <label for="harga_modal"> Modal Pengeluaran(Rp)</label>
+                    <input type="number" id="harga_modal" name="harga_modal" placeholder="Masukkan Modal Produk" min="0" step="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="harga_jual">Harga Yang diJual (Rp)</label>
+                    <input type="number" id="harga_jual" name="harga_jual" placeholder="Masukkan Harga Produk" min="0" step="1" required>
+                </div>
+                <button type="submit" class="btn btn-green">＋ Simpan Produk</button>
+            </form>
+        </div>
+
+        <div class="card card-blue">
+            <div class="card-accent"></div>
+            <div class="card-title"><span class="dot dot-blue"></span> Catat Transaksi</div>
+            <form action="/tambah_penjualan" method="POST">
+                <div class="form-group">
+                    <label for="id_produk">Pilih Produk</label>
+                    <div class="select-wrap">
+                        <select id="id_produk" name="id_produk" required>
+                            <option value="">Pilih Produk</option>
+                            {% for p in produk_list %}
+                            <option value="{{ p['id_produk'] }}">{{ p['nama_produk'] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="jumlah_terjual">Produk Yang Terjual</label>
+                    <input type="number" id="jumlah_terjual" name="jumlah_terjual" placeholder="0" min="1" step="1" required>
+                </div>
+                <button type="submit" class="btn btn-blue">→ Simpan Transaksi</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Daftar Produk -->
+    <div class="sec-header">
+        <h2>🏷️ Daftar Produk</h2>
+        <div class="line"></div>
+    </div>
+    <div class="produk-grid">
+        {% if produk_list %}
+            {% for p in produk_list %}
+            <div class="produk-item">
+                <div class="produk-nama">{{ p['nama_produk'] }}</div>
+                <div style="display:flex;flex-direction:column;gap:6px">
+                    <div class="harga-row">
+                        <span class="label">Modal</span>
+                        <span class="value">Rp {{ "{:,.0f}".format(p['harga_modal']) }}</span>
+                    </div>
+                    <div class="harga-row">
+                        <span class="label">Jual</span>
+                        <span class="value">Rp {{ "{:,.0f}".format(p['harga_jual']) }}</span>
+                    </div>
+                </div>
+                <div class="harga-profit">
+                    <span class="label">Untung/pcs</span>
+                    <span class="value">Rp {{ "{:,.0f}".format(p['harga_jual'] - p['harga_modal']) }}</span>
+                </div>
+                <form action="/hapus_produk/{{ p['id_produk'] }}" method="POST"
+                      onsubmit="return konfirmHapus(event, 'produk', '{{ p['nama_produk'] }}')">
+                    <button type="submit" class="btn btn-danger" style="width:100%">🗑️ Hapus Produk</button>
+                </form>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="color:var(--muted);font-size:14px">Belum ada produk.</p>
+        {% endif %}
+    </div>
+
+    <!-- Laporan Transaksi -->
+    <div class="sec-header table-section">
+        <h2>📊 Laporan Transaksi</h2>
+        <div class="line"></div>
+    </div>
+    <div class="table-wrapper table-section">
+        <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>No Produk</th>
+                        <th>Produk</th>
+                        <th>Terjual</th>
+                        <th>Pendapatan Kotor</th>
+                        <th>Pendapatan Bersih</th>
+                        <th>Fitur</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if laporan %}
+                        {% for row in laporan %}
+                        <tr>
+                            <td class="td-id">#{{ row['id_penjualan'] }}</td>
+                            <td class="td-name">{{ row['nama_produk'] }}</td>
+                            <td class="td-qty">{{ row['jumlah_terjual'] }} pcs</td>
+                            <td><span class="pill pill-blue">Rp {{ "{:,.0f}".format(row['pendapatan_kotor']) }}</span></td>
+                            <td><span class="pill pill-green">Rp {{ "{:,.0f}".format(row['pendapatan_bersih']) }}</span></td>
+                            <td>
+                                <form action="/hapus_transaksi/{{ row['id_penjualan'] }}" method="POST"
+                                      onsubmit="return konfirmHapus(event, 'transaksi', '{{ row['nama_produk'] }}')">
+                                    <button type="submit" class="btn btn-danger">🗑️ Hapus</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty">
+                                    <div class="icon">📭</div>
+                                    <p>Belum ada data transaksi.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+                {% if laporan %}
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="td-total">✨ Total Pendapatan</td>
+                        <td><span class="pill pill-blue">Rp {{ "{:,.0f}".format(total_kotor) }}</span></td>
+                        <td><span class="pill pill-green">Rp {{ "{:,.0f}".format(total_bersih) }}</span></td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+                {% endif %}
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Modal Konfirmasi Hapus -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+        <div class="modal-icon">🗑️</div>
+        <h3>Hapus Data?</h3>
+        <p id="modalText"></p>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="tutupModal()">Batal</button>
+            <button class="btn-confirm" id="btnKonfirm">Ya, Hapus!</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let formTarget = null;
+
+    function konfirmHapus(event, tipe, nama) {
+        event.preventDefault();
+        formTarget = event.target;
+        document.getElementById('modalText').innerHTML = tipe === 'produk'
+            ? `Yakin hapus produk <strong>"${nama}"</strong>?<br>Semua transaksi terkait juga ikut terhapus.`
+            : `Yakin hapus transaksi untuk <strong>"${nama}"</strong>?`;
+        document.getElementById('modalOverlay').classList.add('active');
+        return false;
+    }
+
+    document.getElementById('btnKonfirm').addEventListener('click', () => {
+        if (formTarget) formTarget.submit();
+    });
+
+    function tutupModal() {
+        document.getElementById('modalOverlay').classList.remove('active');
+        formTarget = null;
+    }
+
+    document.getElementById('modalOverlay').addEventListener('click', function(e) {
+        if (e.target === this) tutupModal();
+    });
+</script>
+<footer class="footer">
+    <div class="footer-content">
+        <p>&copy; Daffa 2026 <strong>Sistem Pendapatan</strong>
+        <div class="footer-links">
+            
+            <span class="separator">|</span>
+            <span>Pariangan, Indonesia</span>
+        </div>
+    </div>
+</footer>
+</body>
+</html>
