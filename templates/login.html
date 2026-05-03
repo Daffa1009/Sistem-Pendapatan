@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login · Sistem Dagang</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --black:  #0d0d0d;
+            --white:  #fffdf5;
+            --yellow: #ffe94e;
+            --green:  #00e06a;
+            --blue:   #4f8cff;
+            --red:    #ff4747;
+            --border: 2.5px solid var(--black);
+            --shadow: 5px 5px 0 var(--black);
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--white);
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            padding: 24px;
+            background-image: radial-gradient(circle, #c8c4b0 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        .login-box {
+            background: white;
+            border: var(--border);
+            box-shadow: 8px 8px 0 var(--black);
+            padding: 40px;
+            width: 100%; max-width: 420px;
+        }
+
+        .login-header { margin-bottom: 32px; }
+
+        .login-tag {
+            display: inline-block;
+            font-family: 'Space Mono', monospace;
+            font-size: 10px; font-weight: 700;
+            letter-spacing: 2px; text-transform: uppercase;
+            background: var(--yellow); border: var(--border);
+            padding: 4px 12px; box-shadow: 2px 2px 0 var(--black);
+            margin-bottom: 14px;
+        }
+
+        .login-header h1 {
+            font-size: 32px; font-weight: 700; letter-spacing: -1px;
+            line-height: 1.1;
+        }
+        .login-header h1 span {
+            background: var(--yellow); padding: 0 6px;
+            border: var(--border); display: inline-block;
+            box-shadow: 3px 3px 0 var(--black);
+        }
+        .login-header p {
+            color: #666; font-size: 14px; margin-top: 8px; font-weight: 500;
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+        label {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase;
+        }
+        input {
+            width: 100%; padding: 13px 16px;
+            font-size: 15px; font-family: 'Space Grotesk', sans-serif; font-weight: 500;
+            color: var(--black); background: #fffdf5;
+            border: var(--border); border-radius: 0;
+            outline: none; box-shadow: 3px 3px 0 var(--black);
+            transition: box-shadow .15s, transform .15s;
+        }
+        input:focus {
+            box-shadow: 5px 5px 0 var(--black);
+            transform: translate(-1px, -1px);
+            background: #fffbe6;
+        }
+        input::placeholder { color: #aaa; }
+
+        .btn-login {
+            width: 100%; padding: 15px;
+            font-size: 16px; font-weight: 700; font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: .5px; text-transform: uppercase;
+            background: var(--black); color: var(--yellow);
+            border: var(--border); border-radius: 0;
+            cursor: pointer; box-shadow: var(--shadow);
+            transition: transform .12s, box-shadow .12s;
+            margin-top: 8px;
+        }
+        .btn-login:hover  { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--black); }
+        .btn-login:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0 var(--black); }
+
+        .error-box {
+            background: var(--red); color: white;
+            border: var(--border); padding: 12px 16px;
+            font-weight: 700; font-size: 14px;
+            box-shadow: 3px 3px 0 var(--black);
+            margin-bottom: 20px;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .divider {
+            border: none; border-top: 2.5px dashed var(--black);
+            margin: 24px 0;
+        }
+
+        .info-box {
+            background: var(--yellow); border: var(--border);
+            padding: 14px 16px; box-shadow: 3px 3px 0 var(--black);
+            font-size: 13px; font-weight: 600;
+        }
+        .info-box .title {
+            font-family: 'Space Mono', monospace;
+            font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+            margin-bottom: 8px; opacity: .7;
+        }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .info-row:last-child { margin-bottom: 0; }
+        .info-row .role-badge {
+            font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+            padding: 2px 8px; border: 2px solid var(--black);
+        }
+        .role-admin { background: var(--black); color: var(--yellow); }
+        .role-user  { background: var(--green); color: var(--black); }
+    </style>
+</head>
+<body>
+<div class="login-box">
+    <div class="login-header">
+        <div class="login-tag">⚡ Sistem Dagang v1.0</div>
+        <h1>MASUK KE <span>TOKO</span></h1>
+        <p>Login untuk akses sistem pencatatan penjualan</p>
+    </div>
+
+    {% if error %}
+    <div class="error-box">⚠ {{ error }}</div>
+    {% endif %}
+
+    <form action="/login" method="POST">
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" placeholder="Masukkan username" required autocomplete="username">
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Masukkan password" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn-login">→ MASUK SEKARANG</button>
+    </form>
+
+    <hr class="divider">
+</div>
+</body>
+</html>

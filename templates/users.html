@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen User · Sistem Dagang</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --black:  #0d0d0d;
+            --white:  #fffdf5;
+            --yellow: #ffe94e;
+            --green:  #00e06a;
+            --blue:   #4f8cff;
+            --red:    #ff4747;
+            --pink:   #ff6fd8;
+            --border: 2.5px solid var(--black);
+            --shadow: 4px 4px 0 var(--black);
+            --shadow-lg: 6px 6px 0 var(--black);
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--white);
+            min-height: 100vh;
+            padding: 32px 16px 80px;
+            background-image: radial-gradient(circle, #c8c4b0 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: var(--black);
+        }
+        .container { max-width: 900px; margin: auto; }
+
+        /* NAVBAR */
+        .navbar {
+            display: flex; align-items: center; justify-content: space-between;
+            background: var(--black); color: var(--yellow);
+            border: var(--border); padding: 14px 22px;
+            box-shadow: var(--shadow-lg); margin-bottom: 36px;
+            flex-wrap: wrap; gap: 12px;
+        }
+        .navbar-brand {
+            font-family: 'Space Mono', monospace;
+            font-size: 14px; font-weight: 700; letter-spacing: 1px;
+        }
+        .navbar-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .nav-user {
+            font-family: 'Space Mono', monospace; font-size: 12px;
+            background: var(--yellow); color: var(--black);
+            border: 2px solid var(--yellow); padding: 5px 12px; font-weight: 700;
+        }
+        .nav-btn {
+            font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 700;
+            padding: 7px 16px; cursor: pointer; border: 2px solid var(--yellow);
+            color: var(--yellow); background: transparent; letter-spacing: .3px;
+            transition: all .12s; text-decoration: none; display: inline-block;
+        }
+        .nav-btn:hover { background: var(--yellow); color: var(--black); }
+        .nav-btn-back { border-color: #aaa; color: #aaa; }
+        .nav-btn-back:hover { background: #aaa; color: var(--black); }
+
+        /* HEADER */
+        .page-header { margin-bottom: 32px; }
+        .page-tag {
+            display: inline-block;
+            font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
+            letter-spacing: 2px; text-transform: uppercase;
+            background: var(--pink); border: var(--border);
+            padding: 4px 12px; box-shadow: 2px 2px 0 var(--black); margin-bottom: 12px;
+        }
+        .page-header h1 { font-size: 28px; font-weight: 700; letter-spacing: -1px; }
+
+        /* FORM TAMBAH USER */
+        .add-card {
+            background: white; border: var(--border);
+            padding: 28px; box-shadow: var(--shadow-lg);
+            margin-bottom: 36px;
+            border-top: 6px solid var(--blue);
+        }
+        .card-title {
+            font-size: 16px; font-weight: 700; margin-bottom: 20px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .chip {
+            display: inline-block; padding: 3px 10px;
+            border: 2px solid var(--black); font-family: 'Space Mono', monospace;
+            font-size: 10px; font-weight: 700; letter-spacing: 1px;
+            box-shadow: 2px 2px 0 var(--black);
+        }
+        .chip-blue { background: var(--blue); color: white; }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; align-items: end; }
+        @media(max-width:680px) { .form-row { grid-template-columns: 1fr; } }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        label {
+            font-family: 'Space Mono', monospace;
+            font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+        }
+        input, select {
+            width: 100%; padding: 11px 14px;
+            font-size: 14px; font-family: 'Space Grotesk', sans-serif; font-weight: 500;
+            color: var(--black); background: #fffdf5;
+            border: var(--border); border-radius: 0; outline: none;
+            box-shadow: 3px 3px 0 var(--black);
+            transition: box-shadow .15s, transform .15s;
+            appearance: none; -webkit-appearance: none;
+        }
+        input:focus, select:focus {
+            box-shadow: 5px 5px 0 var(--black);
+            transform: translate(-1px, -1px); background: #fffbe6;
+        }
+        .select-wrap { position: relative; }
+        .select-wrap::after { content: '▾'; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; font-weight: 700; }
+
+        .btn {
+            padding: 12px 20px; font-size: 14px; font-weight: 700;
+            font-family: 'Space Grotesk', sans-serif;
+            border: var(--border); border-radius: 0; cursor: pointer;
+            box-shadow: var(--shadow); transition: transform .12s, box-shadow .12s;
+            white-space: nowrap;
+        }
+        .btn:hover  { transform: translate(-2px, -2px); box-shadow: var(--shadow-lg); }
+        .btn:active { transform: translate(2px, 2px);   box-shadow: 2px 2px 0 var(--black); }
+        .btn-blue   { background: var(--blue); color: white; }
+        .btn-danger { background: var(--red);  color: white; padding: 8px 14px; font-size: 12px; box-shadow: 3px 3px 0 var(--black); }
+
+        /* TABLE */
+        .table-wrapper { background: white; border: var(--border); box-shadow: var(--shadow-lg); overflow: hidden; }
+        .table-scroll { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 520px; }
+        thead tr { background: var(--black); color: var(--yellow); }
+        th {
+            padding: 15px 20px; text-align: left;
+            font-family: 'Space Mono', monospace;
+            font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+        }
+        td { padding: 15px 20px; border-bottom: 2px solid #f0ece0; font-size: 14px; vertical-align: middle; }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr:hover td { background: #fffbe6; }
+
+        .td-id { font-family: 'Space Mono', monospace; font-size: 12px; color: #999; }
+        .td-name { font-weight: 700; }
+
+        .role-badge {
+            display: inline-block; padding: 4px 12px;
+            border: 2px solid var(--black); font-family: 'Space Mono', monospace;
+            font-size: 11px; font-weight: 700; box-shadow: 2px 2px 0 var(--black);
+        }
+        .role-admin { background: var(--black); color: var(--yellow); }
+        .role-user  { background: var(--green); color: var(--black); }
+
+        .self-badge {
+            font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
+            color: #999; letter-spacing: 1px;
+        }
+
+        /* MODAL */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(13,13,13,.6);
+            z-index: 200; align-items: center; justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: white; border: var(--border); padding: 36px;
+            max-width: 380px; width: 90%; text-align: center;
+            box-shadow: 10px 10px 0 var(--black);
+            animation: popIn .2s cubic-bezier(.34,1.56,.64,1) both;
+        }
+        @keyframes popIn { from{transform:scale(.85) rotate(-2deg);opacity:0} to{transform:scale(1) rotate(0);opacity:1} }
+        .modal-icon { font-size: 44px; margin-bottom: 14px; }
+        .modal h3 {
+            font-size: 22px; font-weight: 700; margin-bottom: 8px;
+            display: inline-block; background: var(--red); color: white;
+            padding: 2px 10px; border: 2px solid var(--black); box-shadow: 3px 3px 0 var(--black);
+        }
+        .modal p { color: #555; font-size: 14px; line-height: 1.7; margin: 14px 0 24px; font-weight: 500; }
+        .modal-actions { display: flex; gap: 12px; }
+        .btn-cancel {
+            flex: 1; padding: 12px; font-size: 14px; font-weight: 700;
+            cursor: pointer; font-family: 'Space Grotesk', sans-serif;
+            background: white; border: var(--border); color: var(--black);
+            box-shadow: var(--shadow); transition: all .12s;
+        }
+        .btn-cancel:hover { transform: translate(-2px,-2px); box-shadow: var(--shadow-lg); }
+        .btn-confirm {
+            flex: 1; padding: 12px; font-size: 14px; font-weight: 700;
+            cursor: pointer; font-family: 'Space Grotesk', sans-serif;
+            background: var(--red); border: var(--border); color: white;
+            box-shadow: var(--shadow); transition: all .12s;
+        }
+        .btn-confirm:hover { transform: translate(-2px,-2px); box-shadow: var(--shadow-lg); }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-brand">⚡ SISTEM DAGANG</div>
+        <div class="navbar-right">
+            <span class="nav-user">👤 {{ username }} · ADMIN</span>
+            <a href="/" class="nav-btn nav-btn-back">← KEMBALI</a>
+            <a href="/logout" class="nav-btn">LOGOUT →</a>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <div class="page-header">
+        <div class="page-tag">🔐 Admin Only</div>
+        <h1>MANAJEMEN USER</h1>
+    </div>
+
+    <!-- Form Tambah User -->
+    <div class="add-card">
+        <div class="card-title">
+            <span class="chip chip-blue">NEW</span>
+            Tambah User Baru
+        </div>
+        <form action="/tambah_user" method="POST">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="uname">Username</label>
+                    <input type="text" id="uname" name="username" placeholder="Contoh: budi" required maxlength="50">
+                </div>
+                <div class="form-group">
+                    <label for="pwd">Password</label>
+                    <input type="text" id="pwd" name="password" placeholder="Password" required>
+                </div>
+                <div class="form-group">
+                    <label for="role">Role</label>
+                    <div class="select-wrap">
+                        <select id="role" name="role" required>
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-blue">＋ TAMBAH</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabel User -->
+    <div class="table-wrapper">
+        <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in user_list %}
+                    <tr>
+                        <td class="td-id">{{ u.id }}</td>
+                        <td class="td-name">{{ u.username }}</td>
+                        <td>
+                            <span class="role-badge {{ 'role-admin' if u.role == 'admin' else 'role-user' }}">
+                                {{ u.role.upper() }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if u.id == session.get('user_id') or (u.id | string) == (session.get('user_id') | string) %}
+                                <span class="self-badge">— AKUN ANDA</span>
+                            {% else %}
+                                <form action="/hapus_user/{{ u.id }}" method="POST"
+                                      onsubmit="return konfirmHapus(event, '{{ u.username }}')">
+                                    <button type="submit" class="btn btn-danger">🗑️ Hapus</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Modal Konfirmasi -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+        <div class="modal-icon">⚠️</div>
+        <h3>HAPUS USER?</h3>
+        <p id="modalText"></p>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="tutupModal()">✕ BATAL</button>
+            <button class="btn-confirm" id="btnKonfirm">🗑️ YA, HAPUS!</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let formTarget = null;
+    function konfirmHapus(event, nama) {
+        event.preventDefault();
+        formTarget = event.target;
+        document.getElementById('modalText').innerHTML = `Yakin hapus user <strong>"${nama}"</strong>? Aksi ini tidak bisa dibatalkan.`;
+        document.getElementById('modalOverlay').classList.add('active');
+        return false;
+    }
+    document.getElementById('btnKonfirm').addEventListener('click', () => { if (formTarget) formTarget.submit(); });
+    function tutupModal() { document.getElementById('modalOverlay').classList.remove('active'); formTarget = null; }
+    document.getElementById('modalOverlay').addEventListener('click', function(e) { if (e.target === this) tutupModal(); });
+</script>
+</body>
+</html>

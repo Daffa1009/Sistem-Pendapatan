@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>403 Forbidden</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: #fffdf5;
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            background-image: radial-gradient(circle, #c8c4b0 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        .box {
+            background: white; border: 2.5px solid #0d0d0d;
+            box-shadow: 8px 8px 0 #0d0d0d; padding: 48px;
+            text-align: center; max-width: 400px;
+        }
+        .code {
+            font-family: 'Space Mono', monospace;
+            font-size: 80px; font-weight: 700;
+            background: #ff4747; color: white;
+            border: 2.5px solid #0d0d0d; padding: 0 16px;
+            display: inline-block; box-shadow: 5px 5px 0 #0d0d0d;
+            margin-bottom: 20px;
+        }
+        h1 { font-size: 22px; font-weight: 700; margin-bottom: 10px; }
+        p  { color: #666; font-size: 14px; font-weight: 500; margin-bottom: 28px; }
+        a {
+            display: inline-block; padding: 13px 28px;
+            background: #0d0d0d; color: #ffe94e;
+            border: 2.5px solid #0d0d0d; font-weight: 700; font-size: 14px;
+            text-decoration: none; box-shadow: 4px 4px 0 #0d0d0d;
+            transition: all .12s;
+        }
+        a:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 #0d0d0d; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <div class="code">403</div>
+        <h1>AKSES DITOLAK!</h1>
+        <p>Halaman ini hanya bisa diakses oleh <strong>Admin</strong>. Kamu tidak punya izin di sini.</p>
+        <a href="/">← KEMBALI KE BERANDA</a>
+    </div>
+</body>
+</html>
