@@ -3,15 +3,12 @@ from functools import wraps
 import mysql.connector
 
 app = Flask(__name__)
-app.secret_key = 'daffa-akbar'  # ganti dengan string acak yang panjang
+app.secret_key = 'rahasia-ganti-ini-xyz-999'
 
 # ── DB ────────────────────────────────────────────────────────────────────────
 def get_db():
     return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="",
-        database="WebPenjualan"
+        host="localhost", user="root", password="", database="WebPenjualan"
     )
 
 # ── DECORATORS ────────────────────────────────────────────────────────────────
@@ -33,9 +30,53 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated
 
-# ── AUTH ──────────────────────────────────────────────────────────────────────
+# ── AUTH: REGISTER ────────────────────────────────────────────────────────────
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if 'user_id' in session:
+        return redirect(url_for('index'))
+    error = None
+    if request.method == 'POST':
+        username = request.form['username'].strip()
+        password = request.form['password']
+        confirm  = request.form['confirm_password']
+
+        if not username or not password:
+            error = 'Username dan password tidak boleh kosong.'
+        elif len(password) < 4:
+            error = 'Password minimal 4 karakter.'
+        elif password != confirm:
+            error = 'Password dan konfirmasi tidak cocok.'
+        else:
+            db = get_db()
+            cursor = db.cursor(dictionary=True)
+            cursor.execute("SELECT id FROM users WHERE username = %s", (username,))
+            existing = cursor.fetchone()
+            if existing:
+                error = 'Username sudah dipakai, coba yang lain.'
+            else:
+                cursor.execute(
+                    "INSERT INTO users (username, password, role) VALUES (%s, %s, 'user')",
+                    (username, password)
+                )
+                db.commit()
+                user_id = cursor.lastrowid
+                cursor.close()
+                db.close()
+                session['user_id']  = user_id
+                session['username'] = username
+                session['role']     = 'user'
+                return redirect(url_for('index'))
+            cursor.close()
+            db.close()
+
+    return render_template('register.html', error=error)
+
+# ── AUTH: LOGIN ───────────────────────────────────────────────────────────────
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if 'user_id' in session:
+        return redirect(url_for('index'))
     error = None
     if request.method == 'POST':
         username = request.form['username'].strip()
@@ -60,49 +101,85 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
-# ── MAIN PAGE ─────────────────────────────────────────────────────────────────
+# ── INDEX ─────────────────────────────────────────────────────────────────────
 @app.route('/')
 @login_required
 def index():
-    db = get_db()
+    db     = get_db()
     cursor = db.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM produk ORDER BY nama_produk")
-    produk_list = cursor.fetchall()
-    cursor.execute("""
-        SELECT j.id_penjualan, p.id_produk, p.nama_produk,
-               p.harga_modal, p.harga_jual, j.jumlah_terjual,
-               (p.harga_jual * j.jumlah_terjual) AS pendapatan_kotor,
-               ((p.harga_jual - p.harga_modal) * j.jumlah_terjual) AS pendapatan_bersih
-        FROM penjualan j
-        JOIN produk p ON j.id_produk = p.id_produk
-        ORDER BY j.id_penjualan DESC
-    """)
+    uid    = session['user_id']
+    role   = session['role']
+
+    # Admin lihat semua, user lihat milik sendiri
+    if role == 'admin':
+        cursor.execute("SELECT * FROM produk ORDER BY nama_produk")
+        produk_list = cursor.fetchall()
+        cursor.execute("""
+            SELECT j.id_penjualan, u.username, p.id_produk, p.nama_produk,
+                   p.harga_modal, p.harga_jual, j.jumlah_terjual, j.tanggal,
+                   (p.harga_jual * j.jumlah_terjual) AS pendapatan_kotor,
+                   ((p.harga_jual - p.harga_modal) * j.jumlah_terjual) AS pendapatan_bersih
+            FROM penjualan j
+            JOIN produk p ON j.id_produk = p.id_produk
+            JOIN users  u ON j.id_user   = u.id
+            ORDER BY j.id_penjualan DESC
+        """)
+    else:
+        cursor.execute("SELECT * FROM produk WHERE id_user = %s ORDER BY nama_produk", (uid,))
+        produk_list = cursor.fetchall()
+        cursor.execute("""
+            SELECT j.id_penjualan, p.id_produk, p.nama_produk,
+                   p.harga_modal, p.harga_jual, j.jumlah_terjual, j.tanggal,
+                   (p.harga_jual * j.jumlah_terjual) AS pendapatan_kotor,
+                   ((p.harga_jual - p.harga_modal) * j.jumlah_terjual) AS pendapatan_bersih
+            FROM penjualan j
+            JOIN produk p ON j.id_produk = p.id_produk
+            WHERE j.id_user = %s
+            ORDER BY j.id_penjualan DESC
+        """, (uid,))
+
     laporan = cursor.fetchall()
     cursor.close()
     db.close()
-    return render_template('index.html', laporan=laporan, produk_list=produk_list,
-                           username=session['username'], role=session['role'])
 
-# ── PRODUK (ADMIN ONLY) ───────────────────────────────────────────────────────
+    return render_template('index.html',
+                           laporan=laporan, produk_list=produk_list,
+                           username=session['username'], role=role)
+
+# ── PRODUK ────────────────────────────────────────────────────────────────────
 @app.route('/tambah_produk', methods=['POST'])
-@admin_required
+@login_required
 def tambah_produk():
+    uid   = session['user_id']
     nama  = request.form['nama_produk']
     modal = request.form['harga_modal']
     jual  = request.form['harga_jual']
     db = get_db()
     cursor = db.cursor()
-    cursor.execute("INSERT INTO produk (nama_produk, harga_modal, harga_jual) VALUES (%s, %s, %s)", (nama, modal, jual))
+    cursor.execute(
+        "INSERT INTO produk (id_user, nama_produk, harga_modal, harga_jual) VALUES (%s,%s,%s,%s)",
+        (uid, nama, modal, jual)
+    )
     db.commit()
     cursor.close()
     db.close()
     return redirect(url_for('index'))
 
 @app.route('/hapus_produk/<int:id_produk>', methods=['POST'])
-@admin_required
+@login_required
 def hapus_produk(id_produk):
-    db = get_db()
-    cursor = db.cursor()
+    uid  = session['user_id']
+    role = session['role']
+    db   = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    # Pastikan produk milik user ini (kecuali admin)
+    if role != 'admin':
+        cursor.execute("SELECT id_produk FROM produk WHERE id_produk=%s AND id_user=%s", (id_produk, uid))
+        if not cursor.fetchone():
+            cursor.close(); db.close()
+            return redirect(url_for('index'))
+
     cursor.execute("DELETE FROM penjualan WHERE id_produk = %s", (id_produk,))
     cursor.execute("DELETE FROM produk WHERE id_produk = %s", (id_produk,))
     db.commit()
@@ -114,34 +191,55 @@ def hapus_produk(id_produk):
 @app.route('/tambah_penjualan', methods=['POST'])
 @login_required
 def tambah_penjualan():
+    uid       = session['user_id']
     id_produk = request.form['id_produk']
     jumlah    = request.form['jumlah_terjual']
     db = get_db()
     cursor = db.cursor()
-    cursor.execute("INSERT INTO penjualan (id_produk, jumlah_terjual) VALUES (%s, %s)", (id_produk, jumlah))
+    cursor.execute(
+        "INSERT INTO penjualan (id_user, id_produk, jumlah_terjual) VALUES (%s,%s,%s)",
+        (uid, id_produk, jumlah)
+    )
     db.commit()
     cursor.close()
     db.close()
     return redirect(url_for('index'))
 
 @app.route('/hapus_transaksi/<int:id_penjualan>', methods=['POST'])
-@admin_required
+@login_required
 def hapus_transaksi(id_penjualan):
-    db = get_db()
-    cursor = db.cursor()
+    uid  = session['user_id']
+    role = session['role']
+    db   = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    if role != 'admin':
+        cursor.execute("SELECT id_penjualan FROM penjualan WHERE id_penjualan=%s AND id_user=%s", (id_penjualan, uid))
+        if not cursor.fetchone():
+            cursor.close(); db.close()
+            return redirect(url_for('index'))
+
     cursor.execute("DELETE FROM penjualan WHERE id_penjualan = %s", (id_penjualan,))
     db.commit()
     cursor.close()
     db.close()
     return redirect(url_for('index'))
 
-# ── MANAJEMEN USER (ADMIN ONLY) ───────────────────────────────────────────────
+# ── ADMIN: KELOLA USER ────────────────────────────────────────────────────────
 @app.route('/users')
 @admin_required
 def users():
     db = get_db()
     cursor = db.cursor(dictionary=True)
-    cursor.execute("SELECT id, username, role FROM users ORDER BY id")
+    cursor.execute("""
+        SELECT u.id, u.username, u.role, u.created_at,
+               COUNT(DISTINCT p.id_produk) AS total_produk,
+               COUNT(DISTINCT j.id_penjualan) AS total_transaksi
+        FROM users u
+        LEFT JOIN produk    p ON p.id_user = u.id
+        LEFT JOIN penjualan j ON j.id_user = u.id
+        GROUP BY u.id ORDER BY u.id
+    """)
     user_list = cursor.fetchall()
     cursor.close()
     db.close()
@@ -157,7 +255,7 @@ def tambah_user():
     db = get_db()
     cursor = db.cursor()
     try:
-        cursor.execute("INSERT INTO users (username, password, role) VALUES (%s, %s, %s)", (uname, pwd, role))
+        cursor.execute("INSERT INTO users (username, password, role) VALUES (%s,%s,%s)", (uname, pwd, role))
         db.commit()
     except Exception:
         pass
@@ -172,7 +270,9 @@ def hapus_user(id_user):
         return redirect(url_for('users'))
     db = get_db()
     cursor = db.cursor()
-    cursor.execute("DELETE FROM users WHERE id = %s", (id_user,))
+    cursor.execute("DELETE FROM penjualan WHERE id_user = %s", (id_user,))
+    cursor.execute("DELETE FROM produk    WHERE id_user = %s", (id_user,))
+    cursor.execute("DELETE FROM users     WHERE id      = %s", (id_user,))
     db.commit()
     cursor.close()
     db.close()

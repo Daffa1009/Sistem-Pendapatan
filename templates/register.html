@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login · Sistem Dagang</title>
+    <title>Daftar Akun · Sistem Dagang</title>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -11,6 +11,7 @@
             --white:  #fffdf5;
             --yellow: #ffe94e;
             --green:  #00e06a;
+            --blue:   #4f8cff;
             --red:    #ff4747;
             --border: 2.5px solid var(--black);
             --shadow: 5px 5px 0 var(--black);
@@ -27,21 +28,24 @@
         }
 
         .box {
-            background: white; border: var(--border);
+            background: white;
+            border: var(--border);
             box-shadow: 8px 8px 0 var(--black);
-            padding: 40px; width: 100%; max-width: 420px;
+            padding: 40px;
+            width: 100%; max-width: 440px;
         }
 
         .box-tag {
             display: inline-block;
             font-family: 'Space Mono', monospace;
             font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
-            background: var(--yellow); border: var(--border);
+            background: var(--green); border: var(--border);
             padding: 4px 12px; box-shadow: 2px 2px 0 var(--black); margin-bottom: 14px;
         }
+
         h1 { font-size: 30px; font-weight: 700; letter-spacing: -1px; margin-bottom: 4px; }
         h1 span {
-            background: var(--yellow); padding: 0 6px;
+            background: var(--green); padding: 0 6px;
             border: var(--border); display: inline-block; box-shadow: 3px 3px 0 var(--black);
         }
         .subtitle { color: #666; font-size: 14px; font-weight: 500; margin-bottom: 28px; }
@@ -62,16 +66,19 @@
         input:focus { box-shadow: 5px 5px 0 var(--black); transform: translate(-1px,-1px); background: #fffbe6; }
         input::placeholder { color: #bbb; }
 
-        .btn-login {
+        .hint { font-size: 12px; color: #999; font-weight: 500; margin-top: 2px; }
+
+        .btn-register {
             width: 100%; padding: 15px;
             font-size: 15px; font-weight: 700; font-family: 'Space Grotesk', sans-serif;
             letter-spacing: .5px; text-transform: uppercase;
-            background: var(--black); color: var(--yellow);
+            background: var(--green); color: var(--black);
             border: var(--border); border-radius: 0; cursor: pointer;
-            box-shadow: var(--shadow); transition: transform .12s, box-shadow .12s; margin-top: 8px;
+            box-shadow: var(--shadow); transition: transform .12s, box-shadow .12s;
+            margin-top: 8px;
         }
-        .btn-login:hover  { transform: translate(-2px,-2px); box-shadow: 7px 7px 0 var(--black); }
-        .btn-login:active { transform: translate(3px,3px); box-shadow: 2px 2px 0 var(--black); }
+        .btn-register:hover  { transform: translate(-2px,-2px); box-shadow: 7px 7px 0 var(--black); }
+        .btn-register:active { transform: translate(3px,3px); box-shadow: 2px 2px 0 var(--black); }
 
         .error-box {
             background: var(--red); color: white;
@@ -82,44 +89,51 @@
 
         .divider { border: none; border-top: 2.5px dashed var(--black); margin: 24px 0; }
 
-        .btn-register {
-            display: block; width: 100%; padding: 15px; text-align: center;
-            font-size: 15px; font-weight: 700; font-family: 'Space Grotesk', sans-serif;
-            letter-spacing: .5px; text-transform: uppercase;
-            background: var(--green); color: var(--black);
-            border: var(--border); cursor: pointer; text-decoration: none;
-            box-shadow: var(--shadow); transition: transform .12s, box-shadow .12s;
+        .login-link {
+            text-align: center; font-size: 14px; font-weight: 600; color: #555;
         }
-        .btn-register:hover  { transform: translate(-2px,-2px); box-shadow: 7px 7px 0 var(--black); }
-        .btn-register:active { transform: translate(3px,3px); box-shadow: 2px 2px 0 var(--black); }
+        .login-link a {
+            color: var(--black); font-weight: 700;
+            text-decoration: none;
+            border-bottom: 2.5px solid var(--black);
+            padding-bottom: 1px;
+        }
+        .login-link a:hover { background: var(--yellow); }
     </style>
 </head>
 <body>
 <div class="box">
-    <div class="box-tag">⚡ Sistem Dagang v1.0</div>
-    <h1>MASUK KE <span>TOKO</span></h1>
-    <p class="subtitle">Login untuk akses pencatatan penjualan kamu</p>
+    <div class="box-tag">✨ GRATIS · DAFTAR SEKARANG</div>
+    <h1>BUAT <span>AKUN</span></h1>
+    <p class="subtitle">Daftar untuk mulai mencatat produk & penjualan kamu sendiri</p>
 
     {% if error %}
     <div class="error-box">⚠ {{ error }}</div>
     {% endif %}
 
-    <form action="/login" method="POST">
+    <form action="/register" method="POST">
         <div class="form-group">
             <label for="username">Username</label>
-            <input type="text" id="username" name="username" placeholder="Masukkan username" required autocomplete="username">
+            <input type="text" id="username" name="username"
+                   placeholder="Contoh: budi_toko" maxlength="50" required autocomplete="username">
+            <span class="hint">Tidak boleh ada spasi, gunakan huruf/angka/underscore</span>
         </div>
         <div class="form-group">
             <label for="password">Password</label>
-            <input type="password" id="password" name="password" placeholder="Masukkan password" required autocomplete="current-password">
+            <input type="password" id="password" name="password"
+                   placeholder="Minimal 4 karakter" required autocomplete="new-password">
         </div>
-        <button type="submit" class="btn-login">→ MASUK SEKARANG</button>
+        <div class="form-group">
+            <label for="confirm_password">Konfirmasi Password</label>
+            <input type="password" id="confirm_password" name="confirm_password"
+                   placeholder="Ulangi password" required autocomplete="new-password">
+        </div>
+        <button type="submit" class="btn-register">＋ BUAT AKUN SEKARANG</button>
     </form>
 
     <hr class="divider">
 
-    <p class="register-link" style="margin-bottom:12px;font-size:13px;color:#888;text-align:center">Belum punya akun?</p>
-    <a href="/register" class="btn-register">✨ DAFTAR AKUN GRATIS →</a>
+    <p class="login-link">Sudah punya akun? <a href="/login">Masuk di sini →</a></p>
 </div>
 </body>
 </html>

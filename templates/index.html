@@ -244,7 +244,7 @@
         /* ── PRODUK GRID ── */
         .produk-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 16px;
             margin-bottom: 48px;
         }
@@ -257,6 +257,9 @@
             display: flex; flex-direction: column; gap: 12px;
             transition: transform .15s, box-shadow .15s;
             position: relative;
+            overflow: hidden;
+            min-width: 0;
+            word-break: break-word;
         }
         .produk-item:hover {
             transform: translate(-3px, -3px);
@@ -278,10 +281,10 @@
         @keyframes spinStar { to { transform: rotate(360deg); } }
 
         .produk-nama { font-size: 15px; font-weight: 700; }
-        .harga-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .harga-table td { padding: 4px 0; }
-        .harga-table td:first-child { color: #666; font-weight: 500; }
-        .harga-table td:last-child { font-family: 'Space Mono', monospace; font-weight: 700; text-align: right; }
+        .harga-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+        .harga-table td { padding: 4px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .harga-table td:first-child { color: #666; font-weight: 500; width: 45%; }
+        .harga-table td:last-child { font-family: 'Space Mono', monospace; font-weight: 700; text-align: right; width: 55%; }
 
         .profit-box {
             background: var(--green);
@@ -422,11 +425,54 @@
         }
         @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
         .ticker-sep { margin: 0 24px; color: var(--green); }
+
+        /* ── NAVBAR ── */
+        .navbar {
+            display: flex; align-items: center; justify-content: space-between;
+            background: var(--black); color: var(--yellow);
+            border: var(--border); padding: 12px 20px;
+            box-shadow: var(--shadow-lg); margin-bottom: 36px;
+            flex-wrap: wrap; gap: 10px;
+        }
+        .navbar-brand { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; letter-spacing: 1px; }
+        .navbar-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .nav-user {
+            font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+            background: var(--yellow); color: var(--black); padding: 5px 10px;
+            border: 2px solid var(--yellow); white-space: nowrap;
+        }
+        .nav-role-admin { background: var(--yellow); }
+        .nav-role-user  { background: var(--green); }
+        .nav-btn {
+            font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 700;
+            padding: 6px 12px; cursor: pointer; border: 2px solid var(--yellow);
+            color: var(--yellow); background: transparent; letter-spacing: .3px;
+            transition: all .12s; text-decoration: none; display: inline-block; white-space: nowrap;
+        }
+        .nav-btn:hover { background: var(--yellow); color: var(--black); }
+        .nav-btn-logout {
+            background: var(--red); border-color: var(--red); color: white;
+        }
+        .nav-btn-logout:hover { background: #cc0000; border-color: #cc0000; color: white; }
     </style>
 </head>
 <body>
 
 <div class="container">
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-brand">⚡ TOKO PINTAR</div>
+        <div class="navbar-right">
+            <span class="nav-user nav-role-{{ role }}">
+                👤 {{ username }} · {{ role.upper() }}
+            </span>
+            {% if role == 'admin' %}
+            <a href="/users" class="nav-btn">👥 KELOLA USER</a>
+            {% endif %}
+            <a href="/logout" class="nav-btn nav-btn-logout">🚪 LOGOUT</a>
+        </div>
+    </nav>
 
     <!-- Header -->
     <div class="header">
@@ -559,10 +605,12 @@
                     <span class="label">Untung/pcs</span>
                     <span class="value">Rp {{ "{:,.0f}".format(p['harga_jual'] - p['harga_modal']) }}</span>
                 </div>
+                {% if role == 'admin' or True %}
                 <form action="/hapus_produk/{{ p['id_produk'] }}" method="POST"
                       onsubmit="return konfirmHapus(event, 'produk', '{{ p.nama_produk }}')">
                     <button type="submit" class="btn btn-danger">🗑️ HAPUS PRODUK</button>
                 </form>
+                {% endif %}
             </div>
             {% endfor %}
         {% else %}
@@ -585,6 +633,7 @@
                         <th>Terjual</th>
                         <th>Pendapatan Kotor</th>
                         <th>Keuntungan Bersih</th>
+                        {% if role == 'admin' %}<th>User</th>{% endif %}
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -597,6 +646,7 @@
                             <td class="td-qty">{{ row['jumlah_terjual'] }} pcs</td>
                             <td><span class="badge-blue">Rp {{ "{:,.0f}".format(row['pendapatan_kotor']) }}</span></td>
                             <td><span class="badge-green">Rp {{ "{:,.0f}".format(row['pendapatan_bersih']) }}</span></td>
+                            {% if role == 'admin' %}<td class="td-qty">{{ row['username'] }}</td>{% endif %}
                             <td>
                                 <form action="/hapus_transaksi/{{ row['id_penjualan'] }}" method="POST"
                                       onsubmit="return konfirmHapus(event, 'transaksi', '{{ row.nama_produk }}')">
@@ -607,7 +657,7 @@
                         {% endfor %}
                     {% else %}
                         <tr>
-                            <td colspan="6">
+                            <td colspan="{{ 7 if role == 'admin' else 6 }}">
                                 <div class="empty">
                                     <div class="icon">📭</div>
                                     <p>Belum ada data transaksi.</p>
@@ -619,7 +669,7 @@
                 {% if laporan %}
                 <tfoot>
                     <tr>
-                        <td colspan="3" class="td-total">★ TOTAL KESELURUHAN</td>
+                        <td colspan="{{ 4 if role == 'admin' else 3 }}" class="td-total">★ TOTAL KESELURUHAN</td>
                         <td><span class="badge-blue">Rp {{ "{:,.0f}".format(total_kotor) }}</span></td>
                         <td><span class="badge-green">Rp {{ "{:,.0f}".format(total_bersih) }}</span></td>
                         <td></td>
