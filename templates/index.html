@@ -462,7 +462,7 @@
 
     <!-- Navbar -->
     <nav class="navbar">
-        <div class="navbar-brand">⚡ TOKO PINTAR</div>
+        <div class="navbar-brand"> TOKO PINTAR</div>
         <div class="navbar-right">
             <span class="nav-user nav-role-{{ role }}">
                 👤 {{ username }} · {{ role.upper() }}
@@ -476,9 +476,9 @@
 
     <!-- Header -->
     <div class="header">
-        <div class="header-tag">⚡ Sistem Pencatatan Dagang v1.0</div>
+        <div class="header-tag"> Sistem Pencatatan Penjualan</div>
         <h1>TOKO <span class="highlight">PINTAR</span></h1>
-        <p class="header-sub">Catat produk · Rekam penjualan · Hitung keuntungan otomatis</p>
+        <p class="header-sub">Simpan Produk - Catat Transaksi & Hitung keuntungan otomatis</p>
     </div>
 
     <!-- Ticker -->
@@ -526,7 +526,7 @@
         </div>
         <div class="stat-card s-green">
             <span class="stat-icon">📈</span>
-            <div class="stat-label">Keuntungan Bersih</div>
+            <div class="stat-label">Pendapatan Bersih</div>
             <div class="stat-value">Rp {{ "{:,.0f}".format(total_bersih) }}</div>
         </div>
     </div>
@@ -536,22 +536,22 @@
         <div class="card card-green">
             <div class="card-title">
                 <span class="chip chip-green">NEW</span>
-                Input Produk Baru
+                Masukkan Produk 
             </div>
             <form action="/tambah_produk" method="POST">
                 <div class="form-group">
-                    <label for="nama_produk">Nama Barang</label>
-                    <input type="text" id="nama_produk" name="nama_produk" placeholder="Contoh: Kopi Bubuk" maxlength="100" required>
+                    <label for="nama_produk">Nama Produk</label>
+                    <input type="text" id="nama_produk" name="nama_produk" placeholder="Masukkan Nama Produk" maxlength="100" required>
                 </div>
                 <div class="form-group">
                     <label for="harga_modal">Harga Modal (Rp)</label>
-                    <input type="number" id="harga_modal" name="harga_modal" placeholder="0" min="0" step="1" required>
+                    <input type="number" id="harga_modal" name="harga_modal" placeholder="Masukkan Harga Modal/PCS" min="0" step="1" required>
                 </div>
                 <div class="form-group">
                     <label for="harga_jual">Harga Jual (Rp)</label>
-                    <input type="number" id="harga_jual" name="harga_jual" placeholder="0" min="0" step="1" required>
+                    <input type="number" id="harga_jual" name="harga_jual" placeholder="Masukkan Harga Jual/PCS" min="0" step="1" required>
                 </div>
-                <button type="submit" class="btn btn-green">＋ SIMPAN PRODUK</button>
+                <button type="submit" class="btn btn-green">+ SIMPAN PRODUK</button>
             </form>
         </div>
 
@@ -562,10 +562,10 @@
             </div>
             <form action="/tambah_penjualan" method="POST">
                 <div class="form-group">
-                    <label for="id_produk">Pilih Barang</label>
+                    <label for="id_produk">Pilih Produk</label>
                     <div class="select-wrap">
                         <select id="id_produk" name="id_produk" required>
-                            <option value="">-- Pilih Produk --</option>
+                            <option value=""> Pilih Produk </option>
                             {% for p in produk_list %}
                             <option value="{{ p['id_produk'] }}">{{ p['nama_produk'] }}</option>
                             {% endfor %}
@@ -576,7 +576,7 @@
                     <label for="jumlah_terjual">Jumlah Terjual</label>
                     <input type="number" id="jumlah_terjual" name="jumlah_terjual" placeholder="0" min="1" step="1" required>
                 </div>
-                <button type="submit" class="btn btn-blue">→ SIMPAN TRANSAKSI</button>
+                <button type="submit" class="btn btn-blue">→ CATAT TRANSAKSI</button>
             </form>
         </div>
     </div>
@@ -608,7 +608,7 @@
                 {% if role == 'admin' or True %}
                 <form action="/hapus_produk/{{ p['id_produk'] }}" method="POST"
                       onsubmit="return konfirmHapus(event, 'produk', '{{ p.nama_produk }}')">
-                    <button type="submit" class="btn btn-danger">🗑️ HAPUS PRODUK</button>
+                    <button type="submit" class="btn btn-danger"> HAPUS PRODUK</button>
                 </form>
                 {% endif %}
             </div>
@@ -620,7 +620,7 @@
 
     <!-- Laporan Transaksi -->
     <div class="sec-header">
-        <h2>📊 LAPORAN TRANSAKSI</h2>
+        <h2>📊 LAPORAN PENJUALAN</h2>
         <div class="line"></div>
     </div>
     <div class="table-wrapper">
@@ -628,11 +628,11 @@
             <table>
                 <thead>
                     <tr>
-                        <th>#</th>
+                        <th>Id</th>
                         <th>Produk</th>
                         <th>Terjual</th>
                         <th>Pendapatan Kotor</th>
-                        <th>Keuntungan Bersih</th>
+                        <th>Pendapatan Bersih</th>
                         {% if role == 'admin' %}<th>User</th>{% endif %}
                         <th>Aksi</th>
                     </tr>
@@ -650,7 +650,7 @@
                             <td>
                                 <form action="/hapus_transaksi/{{ row['id_penjualan'] }}" method="POST"
                                       onsubmit="return konfirmHapus(event, 'transaksi', '{{ row.nama_produk }}')">
-                                    <button type="submit" class="btn btn-danger" style="width:auto;padding:8px 14px">🗑️ Hapus</button>
+                                    <button type="submit" class="btn btn-danger" style="width:auto;padding:8px 14px"> Hapus</button>
                                 </form>
                             </td>
                         </tr>
@@ -690,7 +690,7 @@
         <p id="modalText"></p>
         <div class="modal-actions">
             <button class="btn-cancel" onclick="tutupModal()">✕ BATAL</button>
-            <button class="btn-confirm" id="btnKonfirm">🗑️ YA, HAPUS!</button>
+            <button class="btn-confirm" id="btnKonfirm"> YA, HAPUS!</button>
         </div>
     </div>
 </div>
