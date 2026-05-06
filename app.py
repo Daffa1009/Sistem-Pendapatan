@@ -3,12 +3,12 @@ from functools import wraps
 import mysql.connector
 
 app = Flask(__name__)
-app.secret_key = 'rahasia-ganti-ini-xyz-999'
+app.secret_key = 'supersecretkey'  # Ganti dengan secret key yang lebih aman di produksi
 
 # ── DB ────────────────────────────────────────────────────────────────────────
 def get_db():
     return mysql.connector.connect(
-        host="localhost", user="root", password="", database="WebPenjualan"
+        host="mysql.railway.internal", user="root", password="EiqSTFYFUQFcgHZQMnKNCRfbUREvFBlU", database="railway", port = 3306
     )
 
 # ── DECORATORS ────────────────────────────────────────────────────────────────
